@@ -13,19 +13,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "HomeSense — Intelligent Household Replenishment",
   description:
-    "HomeSense remembers what your household uses, predicts what will run low, and prepares an intelligent shopping plan. AI recommends, you decide.",
-  keywords: [
-    "household management",
-    "smart shopping",
-    "inventory tracking",
-    "grocery planning",
-  ],
+    "HomeSense remembers what your household uses, predicts what will run low, and prepares an intelligent shopping plan. AI recommends, human approves.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
-      <body className="flex h-full bg-[#07070b] font-sans text-white">
+      <body className="flex h-full bg-[#080A0F] font-sans text-slate-100 selection:bg-violet-500/30 selection:text-white">
         {/* Sidebar */}
         <Sidebar />
 

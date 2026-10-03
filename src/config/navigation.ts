@@ -26,10 +26,9 @@ export interface NavItem {
 }
 
 export const NAVIGATION_ITEMS: NavItem[] = [
-  // ── Main Pages ──
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Overview',
     href: '/',
     icon: LayoutDashboard,
     section: 'main',
@@ -50,26 +49,10 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   },
   {
     id: 'household-memory',
-    label: 'Household Memory',
+    label: 'Insights & Memory',
     href: '/household-memory',
     icon: Brain,
     section: 'main',
-  },
-
-  // ── Settings Pages ──
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    href: '/notifications',
-    icon: Bell,
-    section: 'settings',
-  },
-  {
-    id: 'members',
-    label: 'Members',
-    href: '/members',
-    icon: Users,
-    section: 'settings',
   },
   {
     id: 'settings',

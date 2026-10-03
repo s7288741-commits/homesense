@@ -1,12 +1,25 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   HomeSense — Global Styles
-   ============================================================================
-   Design tokens and base styles for the dark-themed premium UI.
+   HomeSense — Dark Charcoal & Violet Design System
    ============================================================================ */
 
-/* ── Custom scrollbar ── */
+:root, .dark {
+  --bg-main: #080A0F;
+  --bg-card: #121722;
+  --bg-subtle: #19202E;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --accent-violet: #7C3AED;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -17,85 +30,33 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+/* ── Card Styling ── */
+.hs-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-/* ── Smooth transitions ── */
-* {
-  scroll-behavior: smooth;
+.hs-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* ── Selection color ── */
-::selection {
-  background: rgba(139, 92, 246, 0.3);
-  color: white;
+.hs-box {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.75rem;
 }
 
-/* ── Focus ring for accessibility ── */
-*:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.5);
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
-/* ── Card glass effect ── */
-.glass-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* ── Shimmer loading animation ── */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
-}
-
-/* ── Pulse glow for alerts ── */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-  }
-}
-
-.pulse-red {
-  animation: pulse-glow 2s infinite;
-}
-
-/* ── Fade in animation ── */
+/* ── Animations ── */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -104,19 +65,5 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-
-/* ── Staggered children animation ── */
-.stagger-children > * {
-  animation: fadeIn 0.4s ease-out both;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
