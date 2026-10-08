@@ -21,7 +21,7 @@ export default function Sidebar() {
       )}
     >
       {/* Brand */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/[0.06] px-4">
+      <Link href="/" className="flex h-16 items-center gap-3 border-b border-white/[0.06] px-4 hover:bg-white/5 transition-all">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/20">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -31,7 +31,7 @@ export default function Sidebar() {
             <span className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase">Intelligence</span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Main Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">

@@ -11,8 +11,7 @@ import {
   ShoppingCart,
   Brain,
   Settings,
-  Users,
-  Bell,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,15 +20,22 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  badge?: number; // notification count
+  badge?: number;
   section: 'main' | 'settings';
 }
 
 export const NAVIGATION_ITEMS: NavItem[] = [
   {
+    id: 'landing',
+    label: 'Landing Page',
+    href: '/',
+    icon: Sparkles,
+    section: 'main',
+  },
+  {
     id: 'dashboard',
     label: 'Overview',
-    href: '/',
+    href: '/dashboard',
     icon: LayoutDashboard,
     section: 'main',
   },

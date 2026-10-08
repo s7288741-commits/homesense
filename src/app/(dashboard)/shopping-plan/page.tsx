@@ -1,119 +1,81 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Modal } from '@/components/ui/Modal';
+import { AddItemToPlanModal } from '@/components/shopping/AddItemToPlanModal';
+import { useHousehold } from '@/context/HouseholdContext';
 import {
-  getCurrentPlan, getBudgetGuard,
-} from '@/services/shopping-plan.service';
-import { recordSubstitution } from '@/services/memory.service';
-import {
-  ShoppingPlan, BudgetGuardInfo,
-  PLAN_STATUS_CONFIG, MARKETPLACE_CONFIG, Marketplace, PLAN_ITEM_SOURCE_LABELS,
+  PLAN_STATUS_CONFIG,
+  MARKETPLACE_CONFIG,
+  Marketplace,
+  PLAN_ITEM_SOURCE_LABELS,
+  PlanItemSource,
 } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import {
-  ShoppingCart, CheckCircle2, Sparkles, RefreshCw, AlertCircle, Tag,
-  Zap, Trash2, ArrowRight, ShieldCheck, Check
+  ShoppingCart, CheckCircle2, Sparkles, RefreshCw, AlertCircle,
+  Zap, Trash2, ArrowRight, ShieldCheck, Check, Plus
 } from 'lucide-react';
 
 export default function ShoppingPlanPage() {
-  const [plan, setPlan] = useState<ShoppingPlan | null>(null);
-  const [budgetGuard, setBudgetGuard] = useState<BudgetGuardInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [isApproved, setIsApproved] = useState(false);
-  const [selectedStore, setSelectedStore] = useState<Marketplace>(Marketplace.BLINKIT);
+  const {
+    shoppingPlan,
+    selectedStore,
+    setSelectedStore,
+    budget,
+    removeItemFromPlan,
+    addItemToPlan,
+    applySubstitution,
+    approvePlan,
+  } = useHousehold();
 
-  // Substitution state
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showSubModal, setShowSubModal] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [substitutionApplied, setSubstitutionApplied] = useState(false);
 
-  useEffect(() => {
-    async function loadPlanData() {
-      setIsLoading(true);
-      try {
-        const [planData, budgetData] = await Promise.all([
-          getCurrentPlan(),
-          getBudgetGuard('plan-001'),
-        ]);
-        setPlan(planData);
-        setBudgetGuard(budgetData);
-      } catch (error) {
-        console.error('Failed to load plan:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadPlanData();
-  }, []);
+  const isApproved = shoppingPlan.status === ('APPROVED' as any);
+  const statusConfig = PLAN_STATUS_CONFIG[isApproved ? 'APPROVED' : shoppingPlan.status];
+  const totalEstimate = shoppingPlan.totalEstimate || 0;
 
-  const handleRemoveItem = (itemId: string) => {
-    if (!plan) return;
-    const updatedItems = plan.items.filter((i) => i.id !== itemId);
-    setPlan({
-      ...plan,
-      items: updatedItems,
-      totalEstimate: updatedItems.reduce((sum, i) => sum + (i.totalPrice || 0), 0),
-    });
-  };
-
-  const handleApplySubstitution = async () => {
-    if (!plan) return;
-    // Replace baseline detergent (Ariel/Surf Excel @ ₹570) with Genteel alternative @ ₹340 (40% cheaper)
-    const updatedItems = plan.items.map((item) => {
-      if (item.name.toLowerCase().includes('detergent') || item.name.toLowerCase().includes('shampoo')) {
-        return {
-          ...item,
-          name: 'Genteel Liquid Detergent 2L (Substituted)',
-          brand: 'Genteel',
-          totalPrice: 340,
-          unitPrice: 340,
-        };
-      }
-      return item;
-    });
-
-    const newTotal = updatedItems.reduce((sum, i) => sum + (i.totalPrice || 0), 0);
-    setPlan({
-      ...plan,
-      items: updatedItems,
-      totalEstimate: newTotal,
-    });
-
-    await recordSubstitution('Detergent Powder', 'Surf Excel', 'Genteel');
+  const handleApplySubstitution = () => {
+    applySubstitution();
     setSubstitutionApplied(true);
     setShowSubModal(false);
   };
 
   const confirmApproval = () => {
-    setIsApproved(true);
+    approvePlan();
     setShowApprovalModal(false);
   };
-
-  if (isLoading || !plan) {
-    return <div className="p-8 text-center text-xs text-slate-400">Loading Smart Shopping Plan...</div>;
-  }
-
-  const statusConfig = PLAN_STATUS_CONFIG[isApproved ? 'APPROVED' : plan.status];
-  const totalEstimate = plan.totalEstimate || 0;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${plan.monthYear} Smart Shopping Plan`}
-        subtitle={`${plan.items.length} items · Estimated total: ${formatCurrency(totalEstimate)}`}
+        title={`${shoppingPlan.monthYear || 'October 2026'} Smart Shopping Plan`}
+        subtitle={`${shoppingPlan.items.length} items · Estimated total: ${formatCurrency(totalEstimate)}`}
         icon={ShoppingCart}
         badge={{ text: statusConfig.label, variant: isApproved ? 'emerald' : 'violet' }}
         actions={
-          !isApproved && (
-            <button
-              onClick={() => setShowApprovalModal(true)}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 transition-all"
-            >
-              <CheckCircle2 className="h-4 w-4" /> Approve Plan & Order
-            </button>
-          )
+          <div className="flex items-center gap-2">
+            {!isApproved && (
+              <button
+                onClick={() => setShowAddItemModal(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-all"
+              >
+                <Plus className="h-4 w-4" /> Add Item
+              </button>
+            )}
+            {!isApproved && (
+              <button
+                onClick={() => setShowApprovalModal(true)}
+                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 transition-all"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Approve Plan & Order
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -174,30 +136,30 @@ export default function ShoppingPlanPage() {
         {/* Left Column: Plan Items & Rationale */}
         <div className="space-y-4 lg:col-span-8">
           {/* Budget Guard Alert */}
-          {budgetGuard && (
+          {budget && (
             <div className="flex items-center justify-between rounded-xl border border-violet-500/20 bg-violet-500/10 p-3.5 text-xs">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="h-4 w-4 text-violet-400 shrink-0" />
                 <span className="text-violet-200">
-                  Plan total ({formatCurrency(totalEstimate)}) is within your monthly limit ({formatCurrency(budgetGuard.monthlyTarget)}).
+                  Plan total ({formatCurrency(totalEstimate)}) is within your monthly limit ({formatCurrency(budget.monthlyTarget)}).
                 </span>
               </div>
               <span className="text-[11px] font-bold text-emerald-400">
-                {formatCurrency(budgetGuard.monthlyTarget - totalEstimate)} remaining
+                {formatCurrency(budget.remaining)} remaining
               </span>
             </div>
           )}
 
           {/* Items List */}
           <div className="rounded-2xl border border-white/10 bg-[#121722] overflow-hidden shadow-md">
-            <div className="border-b border-white/10 bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-400 flex justify-between">
+            <div className="border-b border-white/10 bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-400 flex justify-between items-center">
               <span>Item & Source Engine Rationale</span>
               <span>Est. Price</span>
             </div>
 
             <div className="divide-y divide-white/5">
-              {plan.items.map((item) => {
-                const sourceConfig = PLAN_ITEM_SOURCE_LABELS[item.source];
+              {shoppingPlan.items.map((item) => {
+                const sourceConfig = PLAN_ITEM_SOURCE_LABELS[item.source] || PLAN_ITEM_SOURCE_LABELS[PlanItemSource.PREDICTION];
                 return (
                   <div key={item.id} className="p-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between hover:bg-white/[0.01]">
                     <div className="space-y-1">
@@ -223,7 +185,7 @@ export default function ShoppingPlanPage() {
                       </div>
                       {!isApproved && (
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
+                          onClick={() => removeItemFromPlan(item.id)}
                           className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
                           title="Remove item"
                         >
@@ -244,7 +206,7 @@ export default function ShoppingPlanPage() {
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-400" /> Store Price Optimization
             </h2>
-            <p className="text-xs text-slate-400">Simulated price & delivery estimates across quick-commerce apps:</p>
+            <p className="text-xs text-slate-400">Select preferred quick-commerce provider:</p>
 
             <div className="space-y-2">
               {Object.values(Marketplace).map((store) => {
@@ -256,7 +218,7 @@ export default function ShoppingPlanPage() {
                     onClick={() => setSelectedStore(store)}
                     className={`cursor-pointer rounded-xl border p-3 text-xs transition-all ${
                       isSelected
-                        ? 'border-violet-500 bg-violet-500/10 text-white'
+                        ? 'border-violet-500 bg-violet-500/10 text-white shadow-md'
                         : 'border-white/10 bg-white/[0.02] text-slate-300 hover:border-white/20'
                     }`}
                   >
@@ -290,6 +252,13 @@ export default function ShoppingPlanPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Custom Item Modal */}
+      <AddItemToPlanModal
+        isOpen={showAddItemModal}
+        onClose={() => setShowAddItemModal(false)}
+        onAdd={(itemData) => addItemToPlan(itemData)}
+      />
 
       {/* Product Substitution Modal */}
       <Modal
@@ -357,7 +326,7 @@ export default function ShoppingPlanPage() {
       >
         <div className="space-y-4">
           <p className="text-xs text-slate-300">
-            You are approving <strong>{plan.items.length} items</strong> for a total estimated cost of{' '}
+            You are approving <strong>{shoppingPlan.items.length} items</strong> for a total estimated cost of{' '}
             <strong>{formatCurrency(totalEstimate)}</strong> via <strong>{MARKETPLACE_CONFIG[selectedStore].name}</strong>.
           </p>
 

@@ -72,6 +72,7 @@ export interface BrandPreference {
   totalChoices: number;
   confidence: number; // 0-1, how sure the system is
   previousBrand?: string; // if brand was recently switched
+  lastChosenBy?: string;
 }
 
 export interface PackSizePreference {

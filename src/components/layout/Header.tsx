@@ -1,21 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Bell, User, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { Bell, ChevronDown, Check, Sparkles } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
-import { getDashboardBudget, getNotifications } from '@/services/dashboard.service';
-import type { HouseholdBudget, AppNotification } from '@/types';
 import { mockHousehold } from '@/data/mock/household.mock';
+import { useHousehold } from '@/context/HouseholdContext';
 
 export default function Header() {
-  const [budget, setBudget] = useState<HouseholdBudget | null>(null);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const { budget, notifications, markNotificationRead } = useHousehold();
   const [showNotifications, setShowNotifications] = useState(false);
-
-  useEffect(() => {
-    getDashboardBudget().then(setBudget);
-    getNotifications().then(setNotifications);
-  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -58,6 +52,16 @@ export default function Header() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
+        {/* Landing Page Link Button */}
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-600 hover:text-white transition-all shadow-sm"
+          title="View Landing Page & Product Tour"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Landing Page</span>
+        </Link>
+
         {/* Notifications */}
         <div className="relative">
           <button
@@ -77,21 +81,27 @@ export default function Header() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
               <div className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-white/10 bg-[#121722] p-3 shadow-2xl">
-                <div className="mb-2 px-3 py-1">
-                  <h3 className="text-sm font-bold text-white">Notifications</h3>
-                  <p className="text-[11px] text-slate-400">{unreadCount} unread</p>
+                <div className="mb-2 px-3 py-1 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Notifications</h3>
+                    <p className="text-[11px] text-slate-400">{unreadCount} unread</p>
+                  </div>
                 </div>
                 <div className="max-h-80 space-y-1 overflow-y-auto">
                   {notifications.map((notif) => (
                     <div
                       key={notif.id}
+                      onClick={() => markNotificationRead(notif.id)}
                       className={cn(
-                        'cursor-pointer rounded-xl px-3 py-2.5 transition-all hover:bg-white/5',
+                        'cursor-pointer rounded-xl px-3 py-2.5 transition-all hover:bg-white/5 flex items-start justify-between gap-2',
                         !notif.isRead && 'bg-violet-500/10 border-l-2 border-violet-500'
                       )}
                     >
-                      <p className="text-xs font-semibold text-white">{notif.title}</p>
-                      <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-2">{notif.message}</p>
+                      <div>
+                        <p className="text-xs font-semibold text-white">{notif.title}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-2">{notif.message}</p>
+                      </div>
+                      {!notif.isRead && <Check className="h-3.5 w-3.5 text-violet-400 shrink-0 mt-0.5" />}
                     </div>
                   ))}
                 </div>
