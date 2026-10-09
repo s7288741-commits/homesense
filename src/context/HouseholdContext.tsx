@@ -19,6 +19,7 @@ import {
   NotificationType,
   SmartActionCard,
   MemberRole,
+  HouseholdMember,
 } from '@/types';
 import { mockInventoryItems } from '@/data/mock/inventory.mock';
 import { mockShoppingPlan } from '@/data/mock/shopping-plan.mock';
@@ -33,6 +34,20 @@ export interface ToastMessage {
 }
 
 interface HouseholdContextType {
+  // Household Info State
+  householdName: string;
+  householdMembers: HouseholdMember[];
+
+  // Layout State
+  isSidebarCollapsed: boolean;
+
+  // Auth & User Profile State
+  currentUser: HouseholdMember | null;
+  isLoggedIn: boolean;
+
+  // Layout Actions
+  toggleSidebar: () => void;
+
   // State
   inventoryItems: InventoryItem[];
   shoppingPlan: ShoppingPlan;
@@ -43,6 +58,17 @@ interface HouseholdContextType {
   notifications: AppNotification[];
   actionCards: SmartActionCard[];
   toasts: ToastMessage[];
+
+  // Household & Member Actions
+  updateHouseholdName: (name: string) => void;
+  addMember: (memberData: { name: string; role?: MemberRole | string; email?: string }) => void;
+  updateMember: (id: string, updates: Partial<HouseholdMember>) => void;
+  deleteMember: (id: string) => void;
+
+  // Auth & Profile Actions
+  switchUser: (memberId: string) => void;
+  logout: () => void;
+  login: (memberId?: string) => void;
 
   // Actions
   addToast: (message: string, type?: ToastMessage['type']) => void;
@@ -101,6 +127,170 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // Layout & Sidebar State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('homesense_sidebar_collapsed');
+      if (saved !== null) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homesense_sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
+    }
+  }, [isSidebarCollapsed]);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => !prev);
+  };
+
+  // Household Name & Members State
+  const [householdName, setHouseholdName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('homesense_household_name');
+      if (saved) return saved;
+    }
+    return mockHousehold.name;
+  });
+
+  const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('homesense_household_members');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return mockHousehold.members;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homesense_household_name', householdName);
+    }
+  }, [householdName]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homesense_household_members', JSON.stringify(householdMembers));
+    }
+  }, [householdMembers]);
+
+  const updateHouseholdName = (name: string) => {
+    setHouseholdName(name);
+    addToast(`Updated household name to "${name}"`, 'success');
+  };
+
+  const addMember = (memberData: { name: string; role?: MemberRole | string; email?: string }) => {
+    const newMember: HouseholdMember = {
+      id: `mem-${Date.now()}`,
+      name: memberData.name.trim(),
+      email: memberData.email?.trim() || `${memberData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
+      role: (memberData.role as MemberRole) || MemberRole.MEMBER,
+      joinedAt: new Date().toISOString(),
+    };
+    setHouseholdMembers((prev) => [...prev, newMember]);
+    addToast(`Added "${newMember.name}" to household!`, 'success');
+  };
+
+  const updateMember = (id: string, updates: Partial<HouseholdMember>) => {
+    setHouseholdMembers((prev) =>
+      prev.map((m) => {
+        if (m.id === id) {
+          const updated = { ...m, ...updates };
+          if (currentUser && currentUser.id === id) {
+            setCurrentUser(updated);
+          }
+          return updated;
+        }
+        return m;
+      })
+    );
+    addToast('Member details updated successfully!', 'info');
+  };
+
+  const deleteMember = (id: string) => {
+    let memberName = '';
+    setHouseholdMembers((prev) => {
+      const target = prev.find((m) => m.id === id);
+      if (target) memberName = target.name;
+      return prev.filter((m) => m.id !== id);
+    });
+    addToast(`Removed "${memberName || 'Member'}" from household.`, 'amber');
+  };
+
+  // Auth & Profile state
+  const [currentUser, setCurrentUser] = useState<HouseholdMember | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('homesense_current_user');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return mockHousehold.members[0];
+  });
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('homesense_is_logged_in');
+      if (saved !== null) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (currentUser) {
+        localStorage.setItem('homesense_current_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('homesense_current_user');
+      }
+      localStorage.setItem('homesense_is_logged_in', JSON.stringify(isLoggedIn));
+    }
+  }, [currentUser, isLoggedIn]);
+
+  const switchUser = (memberId: string) => {
+    const member = householdMembers.find((m) => m.id === memberId);
+    if (member) {
+      setCurrentUser(member);
+      setIsLoggedIn(true);
+      addToast(`Switched active profile to ${member.name} (${member.role})`, 'success');
+    }
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    addToast(`Logged out from ${currentUser?.name || 'HomeSense'}.`, 'info');
+  };
+
+  const login = (memberId?: string) => {
+    const member = householdMembers.find((m) => m.id === memberId) || householdMembers[0];
+    setCurrentUser(member);
+    setIsLoggedIn(true);
+    addToast(`Welcome back, ${member.name}!`, 'success');
   };
 
   // Inventory State
@@ -571,6 +761,11 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   return (
     <HouseholdContext.Provider
       value={{
+        householdName,
+        householdMembers,
+        isSidebarCollapsed,
+        currentUser,
+        isLoggedIn,
         inventoryItems,
         shoppingPlan,
         selectedStore,
@@ -580,6 +775,14 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
         notifications,
         actionCards,
         toasts,
+        toggleSidebar,
+        updateHouseholdName,
+        addMember,
+        updateMember,
+        deleteMember,
+        switchUser,
+        logout,
+        login,
         addToast,
         removeToast,
         addInventoryItem,

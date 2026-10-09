@@ -176,7 +176,7 @@ export default function InventoryPage() {
               onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value as InventoryFilters['sortBy'] }))}
               className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#12161F] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-white/70 focus:border-violet-600 focus:outline-none shadow-sm"
             >
-              <option value="urgency">Sort: Urgency</option>
+              <option value="urgency">Sort: Urgency (Days Left)</option>
               <option value="name">Sort: Name</option>
               <option value="category">Sort: Category</option>
             </select>

@@ -83,12 +83,12 @@ export default function ShoppingPlanPage() {
       <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#121722] p-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/20 text-violet-300 font-bold">1</span>
-          <span className="font-bold text-white">Generate List</span>
+          <span className="font-bold text-white">Smart List Built</span>
         </div>
         <div className="h-px flex-1 bg-white/10 mx-3" />
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/20 text-violet-300 font-bold">2</span>
-          <span className="font-bold text-white">Review Rationale & Substitutions</span>
+          <span className="font-bold text-white">Review Items & Smart Savings</span>
         </div>
         <div className="h-px flex-1 bg-white/10 mx-3" />
         <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export default function ShoppingPlanPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-400 flex items-center gap-1">
-                <AlertCircle className="h-3.5 w-3.5" /> Product Substitution Alert
+                <AlertCircle className="h-3.5 w-3.5" /> Money-Saving Alternative
               </span>
               <span className="text-xs text-slate-400">Item: Detergent Powder</span>
             </div>
@@ -111,7 +111,7 @@ export default function ShoppingPlanPage() {
               Preferred item <span className="text-amber-300">Surf Excel Matic (2L)</span> is currently out of stock on Blinkit.
             </p>
             <p className="text-xs text-slate-300">
-              System found in-stock alternative: <strong className="text-emerald-400">Genteel Liquid Detergent (2L)</strong> — Same pack size, <strong>40% cheaper (Saves ₹230)</strong>, available now!
+              Found in-stock alternative: <strong className="text-emerald-400">Genteel Liquid Detergent (2L)</strong> — Same pack size, <strong>40% cheaper (Saves ₹230)</strong>, available now!
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export default function ShoppingPlanPage() {
             ) : (
               <button
                 onClick={() => setShowSubModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-600/20 hover:bg-amber-500 transition-all"
+                className="flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-600/20 hover:bg-amber-500 transition-all cursor-pointer"
               >
                 <RefreshCw className="h-3.5 w-3.5" /> View Alternative (40% Off)
               </button>
@@ -141,7 +141,7 @@ export default function ShoppingPlanPage() {
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="h-4 w-4 text-violet-400 shrink-0" />
                 <span className="text-violet-200">
-                  Plan total ({formatCurrency(totalEstimate)}) is within your monthly limit ({formatCurrency(budget.monthlyTarget)}).
+                  Plan total ({formatCurrency(totalEstimate)}) is within your monthly budget ({formatCurrency(budget.monthlyTarget)}).
                 </span>
               </div>
               <span className="text-[11px] font-bold text-emerald-400">
@@ -153,7 +153,7 @@ export default function ShoppingPlanPage() {
           {/* Items List */}
           <div className="rounded-2xl border border-white/10 bg-[#121722] overflow-hidden shadow-md">
             <div className="border-b border-white/10 bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-400 flex justify-between items-center">
-              <span>Item & Source Engine Rationale</span>
+              <span>Item & Restock Reason</span>
               <span>Est. Price</span>
             </div>
 
@@ -174,7 +174,7 @@ export default function ShoppingPlanPage() {
 
                       <div className="flex items-center gap-1.5 text-xs text-violet-300">
                         <Sparkles className="h-3 w-3 text-violet-400 shrink-0" />
-                        <span>{sourceConfig.icon} Added via {sourceConfig.label} engine</span>
+                        <span>{sourceConfig.icon} Added via {sourceConfig.label}</span>
                       </div>
                     </div>
 

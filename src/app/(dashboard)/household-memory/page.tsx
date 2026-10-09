@@ -20,11 +20,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 type FocusedTab = 'analytics' | 'trends' | 'preferences' | 'forgotten' | 'anomalies';
 
 const TABS: { id: FocusedTab; label: string; icon: React.ElementType }[] = [
-  { id: 'analytics', label: 'Household Analytics & Spending', icon: DollarSign },
-  { id: 'trends', label: 'Item Consumption Trends', icon: TrendingUp },
-  { id: 'preferences', label: 'Brand Preference Learning', icon: Heart },
-  { id: 'forgotten', label: 'Frequently Purchased & Forgotten', icon: Link2 },
-  { id: 'anomalies', label: 'Anomalies & Plan History', icon: AlertTriangle },
+  { id: 'analytics', label: 'Spending & Restock Analytics', icon: DollarSign },
+  { id: 'trends', label: 'Item Usage Trends', icon: TrendingUp },
+  { id: 'preferences', label: 'Preferred Brand Learning', icon: Heart },
+  { id: 'forgotten', label: 'Frequent & Forgotten Items', icon: Link2 },
+  { id: 'anomalies', label: 'Unusual Spikes & Past Orders', icon: AlertTriangle },
 ];
 
 export default function HouseholdMemoryPage() {
@@ -109,8 +109,8 @@ export default function HouseholdMemoryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Household Analytics & Intelligence Memory"
-        subtitle="Long-term consumption trends, shopping frequency, learned brand choices, and spending insights"
+        title="Household Insights & Memory"
+        subtitle="Track long-term usage trends, preferred family brands, shopping patterns, and monthly spending insights"
         icon={Brain}
       />
 

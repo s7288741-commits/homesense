@@ -29,46 +29,63 @@
 .landing-nav-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  height: 64px;
+  padding: 0.5rem 1.5rem;
+  height: 76px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.landing-nav-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1.75rem;
+  justify-self: start;
+}
+
+.landing-nav-center {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-self: end;
 }
 
 .landing-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.25rem;
   text-decoration: none;
 }
 
 .landing-brand-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #7C3AED, #4F46E5);
   color: white;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .landing-brand-text {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #fff, #c4b5fd);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.landing-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
+  letter-spacing: -0.02em;
+  color: white;
 }
 
 .landing-nav-link {

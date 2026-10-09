@@ -3,12 +3,14 @@
 import './landing/landing.css';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Sparkles, Brain, ShoppingCart, BarChart3, Shield, Zap,
   ArrowRight, ChevronDown, Package, Eye, TrendingUp,
-  RefreshCw, Menu, X, Star, Check, Clock
+  RefreshCw, Menu, X, Star, Check, Clock, Lock, KeyRound, User, Home, FastForward, AlertTriangle, ShieldCheck, Activity
 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import HomeSenseLogo from '@/components/ui/HomeSenseLogo';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -169,10 +171,22 @@ function WorkflowStep({
 }
 
 export default function LandingPage() {
+  const router = useRouter();
   const [scrollY, setScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  // Auth Modal State
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authTab, setAuthTab] = useState<'signin' | 'register'>('signin');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  // Form Inputs
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [householdName, setHouseholdName] = useState('Marathe Household');
+  const [memberName, setMemberName] = useState('Prakash');
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -182,33 +196,45 @@ export default function LandingPage() {
 
   const navOpacity = Math.min(scrollY / 200, 0.95);
 
+  const openAuth = (tab: 'signin' | 'register' = 'signin') => {
+    setAuthTab(tab);
+    setShowAuthModal(true);
+  };
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAuthenticating(true);
+    setTimeout(() => {
+      setIsAuthenticating(false);
+      setShowAuthModal(false);
+      router.push('/dashboard');
+    }, 1000);
+  };
+
   const featureTabs = [
     {
       id: 'predict',
-      label: 'Smart Predictions',
+      label: 'Smart Tracking',
       icon: Brain,
-      image: '/images/feature-intelligence.png',
-      heading: 'AI That Learns Your Household Rhythm',
-      text: 'HomeSense observes purchase patterns, consumption velocity, and seasonal variations. It doesn\'t just track — it understands. Before you realize you\'re running low on cooking oil, HomeSense has already added it to your plan.',
-      highlights: ['Consumption velocity tracking', 'Seasonal pattern recognition', 'Multi-member preference learning'],
+      heading: 'Know What You Need Before You Run Out',
+      text: 'HomeSense monitors how fast your family uses milk, oil, or detergent. It calculates run-out dates in real-time and builds restock lists automatically—saving you from last-minute grocery runs.',
+      highlights: ['Calculates exact usage speed', 'Adapts to seasonal family changes', 'Remembers everyone’s preferred brands'],
     },
     {
       id: 'analytics',
-      label: 'Deep Analytics',
+      label: 'Spending Insights',
       icon: BarChart3,
-      image: '/images/feature-analytics.png',
-      heading: 'Understand Your Household Like Never Before',
-      text: 'Visual consumption trends, spending breakdowns, frequently purchased and forgotten items, shopping frequency insights — everything you need to optimize how your household runs.',
-      highlights: ['Monthly spending heatmaps', 'Forgotten item detection', 'Category-wise consumption trends'],
+      heading: 'Clear Insights Into Household Expenses',
+      text: 'See where your money goes every month, track budget health, and catch forgotten essential items before your pantry runs empty.',
+      highlights: ['Visual monthly spending heatmaps', 'Forgotten item probability alerts', 'Easy budget compliance tracking'],
     },
     {
       id: 'plan',
-      label: 'Smart Shopping',
+      label: 'One-Tap Ordering',
       icon: ShoppingCart,
-      image: '/images/dashboard-mockup.png',
-      heading: 'One-Tap Intelligent Shopping Plans',
-      text: 'HomeSense compiles a shopping plan optimized for price, freshness, and delivery window. Compare across Blinkit, Zepto, and BigBasket — and approve with a single tap.',
-      highlights: ['Multi-platform price comparison', 'Weather-aware delivery scheduling', 'Budget-optimized recommendations'],
+      heading: 'Instant Restock Plan & Quick Delivery',
+      text: 'HomeSense builds a smart restock list matched with store prices, availability, and optimal delivery slots across Blinkit, Zepto, and Instamart.',
+      highlights: ['Real-time store price comparison', 'Rain & weather slot recommendations', 'Zero-waste budget enforcement'],
     },
   ];
 
@@ -222,24 +248,36 @@ export default function LandingPage() {
         style={{ backgroundColor: `rgba(5, 6, 9, ${navOpacity})` }}
       >
         <div className="landing-nav-inner">
-          <Link href="/" className="landing-brand">
-            <div className="landing-brand-icon">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <span className="landing-brand-text">HomeSense</span>
-          </Link>
-
-          <div className="landing-nav-links">
+          {/* Nav Left: Capabilities Links */}
+          <div className="landing-nav-left">
             <a href="#features" className="landing-nav-link">Features</a>
             <a href="#how-it-works" className="landing-nav-link">How It Works</a>
-            <a href="#preview" className="landing-nav-link">Preview</a>
-            <Link href="/dashboard" className="landing-nav-cta">
-              Enter Dashboard <ArrowRight className="w-4 h-4" />
-            </Link>
+            <a href="#preview" className="landing-nav-link">Dashboard Preview</a>
+          </div>
+
+          {/* Nav Center: Centered Logo Stacked */}
+          <div className="landing-nav-center">
+            <HomeSenseLogo size="md" layout="stacked" href="/" />
+          </div>
+
+          {/* Nav Right: Portal Actions */}
+          <div className="landing-nav-right">
+            <button
+              onClick={() => openAuth('signin')}
+              className="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => openAuth('register')}
+              className="landing-nav-cta cursor-pointer"
+            >
+              Get Started <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <button
-            className="landing-mobile-toggle"
+            className="landing-mobile-toggle cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -251,10 +289,11 @@ export default function LandingPage() {
           <div className="landing-mobile-menu">
             <a href="#features" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <a href="#how-it-works" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
-            <a href="#preview" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>Preview</a>
-            <Link href="/dashboard" className="landing-mobile-cta" onClick={() => setMobileMenuOpen(false)}>
-              Enter Dashboard <ArrowRight className="w-4 h-4" />
-            </Link>
+            <a href="#preview" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>Dashboard Preview</a>
+            <button onClick={() => { setMobileMenuOpen(false); openAuth('signin'); }} className="landing-mobile-link text-left">Sign In</button>
+            <button onClick={() => { setMobileMenuOpen(false); openAuth('register'); }} className="landing-mobile-cta">
+              Get Started <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </nav>
@@ -274,27 +313,25 @@ export default function LandingPage() {
         <div className="landing-hero-content">
           <div className="landing-hero-badge">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI-Powered Household Intelligence</span>
+            <span>SMART HOUSEHOLD ASSISTANT</span>
           </div>
 
           <h1 className="landing-hero-title">
-            Your Kitchen
-            <span className="landing-hero-gradient"> Knows What </span>
-            It Needs
+            Your Home Essentials,
+            <span className="landing-hero-gradient"> Always in Sync.</span>
           </h1>
 
           <p className="landing-hero-subtitle">
-            HomeSense remembers every household pattern, predicts what will run low,
-            and prepares a smart shopping plan — before you even realize something&apos;s missing.
+            HomeSense automatically tracks your supplies, learns usage patterns, and predicts what you need before you run out. Never write a manual grocery list again.
           </p>
 
           <div className="landing-hero-actions">
-            <Link href="/dashboard" className="landing-btn-primary">
-              <span>Enter Dashboard</span>
+            <button onClick={() => openAuth('signin')} className="landing-btn-primary cursor-pointer">
+              <span>Get Started</span>
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </button>
             <a href="#features" className="landing-btn-secondary">
-              Explore Features
+              See How It Works
               <ChevronDown className="w-4 h-4 animate-bounce" />
             </a>
           </div>
@@ -302,25 +339,69 @@ export default function LandingPage() {
           <div className="landing-hero-stats">
             <AnimatedCounter end={12} label="Items Tracked" suffix="+" />
             <div className="landing-stat-divider" />
-            <AnimatedCounter end={95} label="Prediction Accuracy" suffix="%" />
+            <AnimatedCounter end={98} label="Usage Precision" suffix="%" />
             <div className="landing-stat-divider" />
-            <AnimatedCounter end={40} label="Time Saved" suffix="%" />
+            <AnimatedCounter end={100} label="Fewer Emergency Store Runs" suffix="%" />
           </div>
         </div>
 
+        {/* ── Native UI Telemetry Console ── */}
         <div
-          className="landing-hero-image-wrap"
-          style={{ transform: `translateY(${scrollY * 0.08}px)` }}
+          className="mx-auto mt-12 max-w-4xl rounded-3xl border border-violet-500/30 bg-[#0D111A]/90 p-6 shadow-2xl backdrop-blur-2xl text-left text-xs text-white space-y-4"
+          style={{ transform: `translateY(${scrollY * 0.04}px)` }}
         >
-          <Image
-            src="/images/hero-bg.png"
-            alt="HomeSense holographic household items"
-            width={900}
-            height={600}
-            className="landing-hero-image"
-            priority
-          />
-          <div className="landing-hero-image-glow" />
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-bold tracking-wider text-slate-300 uppercase text-[11px]">
+                LIVE HOUSEHOLD STATUS FEED
+              </span>
+            </div>
+            <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[10px] font-bold text-violet-300 border border-violet-500/30">
+              SMART AUTO-TRACKING
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-3.5 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-white text-xs">Cooking Oil</span>
+                <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                  ~2 Days Left
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300">Stock: 0.5L · Usage speed +15%</p>
+              <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full bg-red-500 w-[20%]" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-white text-xs">Basmati Rice</span>
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                  ~4 Days Left
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300">Stock: 1.2kg · 5kg bag preferred</p>
+              <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full bg-amber-500 w-[35%]" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-white text-xs">Liquid Detergent</span>
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                  Smart Swap 🟢
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300">Genteel 2L (Saved ₹230)</p>
+              <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full bg-emerald-500 w-[85%]" />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -329,56 +410,56 @@ export default function LandingPage() {
         <div className="landing-section-container">
           <div className="landing-section-header">
             <span className="landing-section-tag">
-              <Zap className="w-3.5 h-3.5" /> Core Capabilities
+              <Zap className="w-3.5 h-3.5" /> Smart Features
             </span>
             <h2 className="landing-section-title">
-              Intelligence That <span className="text-violet-400">Runs Your Home</span>
+              Everything You Need for a <span className="text-violet-400">Seamless Home</span>
             </h2>
             <p className="landing-section-subtitle">
-              Six powerful modules working together to keep your household running smoothly
+              Six smart tools working together so you never run out of groceries or household supplies again.
             </p>
           </div>
 
           <div className="landing-features-grid">
             <FeatureCard
               icon={Eye}
-              title="Real-Time Inventory"
-              description="Track every household item with depletion rates, days remaining, and automatic restock alerts."
+              title="Smart Stock Predictions"
+              description="Tracks consumption speed and estimates exact depletion dates so you are never caught off guard."
               gradient="linear-gradient(135deg, #7C3AED, #4F46E5)"
               delay={0}
             />
             <FeatureCard
               icon={Brain}
-              title="Preference Learning"
-              description="Mom picks Brand B over Brand A? The system learns and remembers every family member's preferences."
+              title="Family & Member Preferences"
+              description="Remembers brand choices and dietary needs for everyone in your household automatically."
               gradient="linear-gradient(135deg, #EC4899, #8B5CF6)"
               delay={100}
             />
             <FeatureCard
               icon={RefreshCw}
-              title="Smart Substitution"
-              description="Preferred detergent unavailable? HomeSense suggests alternatives — similar size, 40% cheaper, available now."
+              title="Money-Saving Suggestions"
+              description="Recommends budget-friendly brand alternatives when preferred items are out of stock."
               gradient="linear-gradient(135deg, #06B6D4, #3B82F6)"
               delay={200}
             />
             <FeatureCard
               icon={TrendingUp}
-              title="Consumption Analytics"
-              description="Frequently purchased, frequently forgotten, spending trends, shopping frequency — all in one dashboard."
+              title="Household Spending Insights"
+              description="Clear spending breakdowns, monthly budget targets, and alerts for forgotten supplies."
               gradient="linear-gradient(135deg, #F59E0B, #EF4444)"
               delay={300}
             />
             <FeatureCard
               icon={ShoppingCart}
-              title="AI Shopping Plans"
-              description="Price-optimized across Blinkit, Zepto, BigBasket. Weather-aware delivery scheduling built in."
+              title="One-Tap Restock Plans"
+              description="Auto-builds shopping lists optimized for Blinkit, Zepto, and Instamart with fast delivery."
               gradient="linear-gradient(135deg, #10B981, #059669)"
               delay={400}
             />
             <FeatureCard
               icon={Shield}
-              title="Household Memory"
-              description="Every purchase, every preference, every pattern — stored and analyzed to serve your home better."
+              title="Private Local Storage"
+              description="All household patterns and supply levels stay saved locally on your device for complete privacy."
               gradient="linear-gradient(135deg, #6366F1, #A855F7)"
               delay={500}
             />
@@ -395,7 +476,7 @@ export default function LandingPage() {
               return (
                 <button
                   key={tab.id}
-                  className={`landing-showcase-tab ${idx === activeFeatureTab ? 'active' : ''}`}
+                  className={`landing-showcase-tab cursor-pointer ${idx === activeFeatureTab ? 'active' : ''}`}
                   onClick={() => setActiveFeatureTab(idx)}
                 >
                   <TabIcon className="w-4 h-4" />
@@ -417,19 +498,54 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/dashboard" className="landing-showcase-cta">
-                Try It Now <ArrowRight className="w-4 h-4" />
-              </Link>
+              <button onClick={() => openAuth('signin')} className="landing-showcase-cta cursor-pointer">
+                Open Dashboard <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-            <div className="landing-showcase-image-wrap">
-              <Image
-                src={activeTab.image}
-                alt={activeTab.heading}
-                width={560}
-                height={400}
-                className="landing-showcase-image"
-              />
-              <div className="landing-showcase-image-glow" />
+
+            {/* ── Native UI Showcase Card ── */}
+            <div className="rounded-3xl border border-white/10 bg-[#121722] p-6 shadow-2xl space-y-4 text-xs text-left w-full max-w-md mx-auto">
+              <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <span className="font-bold text-white text-sm">{activeTab.label} Overview</span>
+                <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                  REAL-TIME PREVIEW
+                </span>
+              </div>
+
+              {activeFeatureTab === 0 && (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-white/5 p-3 space-y-1">
+                    <span className="text-slate-400 block text-[11px]">Usage Speed Change</span>
+                    <strong className="text-emerald-400 text-sm">Sunflower Oil (-0.2L / day)</strong>
+                  </div>
+                  <div className="rounded-xl bg-white/5 p-3 space-y-1">
+                    <span className="text-slate-400 block text-[11px]">Learned Family Loyalty</span>
+                    <strong className="text-violet-400 text-sm">94% Confidence (Mom & Prakash)</strong>
+                  </div>
+                </div>
+              )}
+
+              {activeFeatureTab === 1 && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-white">
+                    <span>Monthly Budget: ₹5,000</span>
+                    <span className="text-emerald-400 font-bold">₹1,850 Spent</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full bg-violet-600 w-[37%]" />
+                  </div>
+                  <p className="text-[11px] text-slate-400">Budget target on track. 63% buffer remaining.</p>
+                </div>
+              )}
+
+              {activeFeatureTab === 2 && (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 space-y-1">
+                    <span className="font-bold text-emerald-300">Blinkit Order Ready</span>
+                    <p className="text-slate-300 text-[11px]">12-min delivery slot reserved ahead of morning rain forecast.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -440,21 +556,21 @@ export default function LandingPage() {
         <div className="landing-section-container">
           <div className="landing-section-header">
             <span className="landing-section-tag">
-              <Clock className="w-3.5 h-3.5" /> Continuous Loop
+              <Clock className="w-3.5 h-3.5" /> Simple 4-Step Process
             </span>
             <h2 className="landing-section-title">
-              How <span className="text-violet-400">HomeSense</span> Works
+              How <span className="text-violet-400">HomeSense Works</span>
             </h2>
             <p className="landing-section-subtitle">
-              A continuous intelligence loop that keeps your household running without friction
+              A seamless system that keeps your home stocked effortlessly.
             </p>
           </div>
 
           <div className="landing-workflow-grid">
-            <WorkflowStep step={1} title="Remember" description="Tracks every item, every purchase, every preference across all household members." icon={Package} delay={0} />
-            <WorkflowStep step={2} title="Predict" description="AI analyzes consumption velocity, seasonal trends, and multi-member patterns." icon={Brain} delay={150} />
-            <WorkflowStep step={3} title="Explain" description="Every recommendation comes with a clear reason — no black box decisions." icon={Eye} delay={300} />
-            <WorkflowStep step={4} title="Recommend" description="Auto-generates optimized shopping plans. You approve, we handle the rest." icon={ShoppingCart} delay={450} />
+            <WorkflowStep step={1} title="Track & Remember" description="Stores your supplies, preferred brands, and typical restocking schedules automatically." icon={Package} delay={0} />
+            <WorkflowStep step={2} title="Predict Depletion" description="Calculates usage speed and alerts you days before items run out." icon={Brain} delay={150} />
+            <WorkflowStep step={3} title="Smart Suggestions" description="Explains why items are flagged and suggests money-saving brand alternatives." icon={Eye} delay={300} />
+            <WorkflowStep step={4} title="One-Tap Restock" description="Generates a ready-to-order shopping list. You review, approve, and done!" icon={ShoppingCart} delay={450} />
           </div>
         </div>
       </section>
@@ -467,26 +583,48 @@ export default function LandingPage() {
               <Star className="w-3.5 h-3.5" /> Live Preview
             </span>
             <h2 className="landing-section-title">
-              See the <span className="text-violet-400">Dashboard</span> in Action
+              Your Household <span className="text-violet-400">Dashboard</span>
             </h2>
           </div>
 
-          <div className="landing-preview-wrap">
-            <Image
-              src="/images/dashboard-mockup.png"
-              alt="HomeSense Dashboard Preview"
-              width={1000}
-              height={650}
-              className="landing-preview-image"
-            />
-            <div className="landing-preview-glow" />
+          {/* ── Native UI Dashboard Preview Card ── */}
+          <div className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-[#121722] p-6 shadow-2xl text-left text-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 font-bold text-white text-sm">
+                <Activity className="h-4 w-4 text-violet-400" />
+                <span>Household Essentials Overview</span>
+              </div>
+              <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 text-[10px] font-bold text-emerald-300">
+                12 ITEMS TRACKED · ALL STOCKED
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                <span className="text-slate-400 text-[11px]">Stock Status</span>
+                <div className="text-lg font-bold text-emerald-400">Normal 🟢</div>
+                <p className="text-[10px] text-slate-400">8 items adequately stocked</p>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                <span className="text-slate-400 text-[11px]">Active Shopping Plan</span>
+                <div className="text-lg font-bold text-white">8 Items (₹1,850)</div>
+                <p className="text-[10px] text-violet-300">Ready for review</p>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                <span className="text-slate-400 text-[11px]">Remaining Budget</span>
+                <div className="text-lg font-bold text-emerald-400">₹3,150 Left</div>
+                <p className="text-[10px] text-slate-400">Monthly limit: ₹5,000</p>
+              </div>
+            </div>
           </div>
 
-          <div className="landing-preview-cta-wrap">
-            <Link href="/dashboard" className="landing-btn-primary landing-btn-lg">
-              <span>Open Live Dashboard</span>
+          <div className="landing-preview-cta-wrap mt-8">
+            <button onClick={() => openAuth('signin')} className="landing-btn-primary landing-btn-lg cursor-pointer">
+              <span>Open Dashboard</span>
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </button>
           </div>
         </div>
       </section>
@@ -496,15 +634,15 @@ export default function LandingPage() {
         <div className="landing-final-cta-glow" />
         <div className="landing-section-container landing-final-cta-inner">
           <h2 className="landing-final-title">
-            Ready to Make Your Home <span className="text-violet-300">Intelligent</span>?
+            Ready for a <span className="text-violet-300">Stress-Free Home?</span>
           </h2>
           <p className="landing-final-subtitle">
-            Stop running out of essentials. Let HomeSense handle the thinking.
+            Never worry about forgotten groceries again. Let HomeSense organize your household essentials.
           </p>
-          <Link href="/dashboard" className="landing-btn-primary landing-btn-lg">
-            <span>Enter Dashboard — It&apos;s Free</span>
+          <button onClick={() => openAuth('register')} className="landing-btn-primary landing-btn-lg cursor-pointer">
+            <span>Get Started Now</span>
             <ArrowRight className="w-5 h-5" />
-          </Link>
+          </button>
         </div>
       </section>
 
@@ -512,24 +650,151 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-section-container">
           <div className="landing-footer-inner">
-            <div className="landing-footer-brand">
-              <div className="landing-brand-icon">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <span className="landing-brand-text">HomeSense</span>
-            </div>
-            <p className="landing-footer-text">
-              Built with ❤️ for the Hackathon. AI-Powered Household Intelligence System.
+            <HomeSenseLogo size="md" layout="stacked" href="/" />
+            
+            <p className="landing-footer-text font-mono text-xs text-violet-300/80 tracking-wider text-center">
+              Smart Essentials Tracking · Never Run Out · Stress-Free Home Management
             </p>
+
             <div className="landing-footer-links">
-              <Link href="/dashboard" className="landing-footer-link">Dashboard</Link>
-              <Link href="/inventory" className="landing-footer-link">Inventory</Link>
-              <Link href="/shopping-plan" className="landing-footer-link">Shopping Plan</Link>
-              <Link href="/household-memory" className="landing-footer-link">Analytics</Link>
+              <button onClick={() => openAuth('signin')} className="landing-footer-link cursor-pointer">Dashboard</button>
+              <button onClick={() => openAuth('signin')} className="landing-footer-link cursor-pointer">Inventory</button>
+              <button onClick={() => openAuth('signin')} className="landing-footer-link cursor-pointer">Shopping Plan</button>
+              <button onClick={() => openAuth('signin')} className="landing-footer-link cursor-pointer">Analytics</button>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* AUTHENTICATION MODAL */}
+      <Modal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title=""
+        subtitle=""
+      >
+        <div className="space-y-4 text-xs">
+          <div className="flex flex-col items-center justify-center py-2 text-center border-b border-white/10">
+            <HomeSenseLogo size="md" layout="stacked" href="/" />
+            <h3 className="mt-3 text-base font-extrabold text-white">
+              {authTab === 'signin' ? 'Sign In to HomeSense' : 'Set Up Your Household'}
+            </h3>
+            <p className="mt-0.5 text-[11px] text-slate-400">
+              {authTab === 'signin'
+                ? 'Access your smart household dashboard'
+                : 'Set up your household name & member preferences'}
+            </p>
+          </div>
+          <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
+            <button
+              type="button"
+              onClick={() => setAuthTab('signin')}
+              className={`flex-1 rounded-lg py-2 font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                authTab === 'signin'
+                  ? 'bg-violet-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <KeyRound className="h-3.5 w-3.5" /> Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthTab('register')}
+              className={`flex-1 rounded-lg py-2 font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                authTab === 'register'
+                  ? 'bg-violet-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Home className="h-3.5 w-3.5" /> Create Account
+            </button>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} className="space-y-3 pt-1">
+            {authTab === 'register' && (
+              <div>
+                <label className="mb-1 block font-semibold text-slate-300">Household Name *</label>
+                <div className="relative">
+                  <Home className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={householdName}
+                    onChange={(e) => setHouseholdName(e.target.value)}
+                    placeholder="e.g. Marathe Household"
+                    className="w-full rounded-xl border border-white/10 bg-[#121722] py-2 pl-9 pr-3 text-white focus:border-violet-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {authTab === 'register' && (
+              <div>
+                <label className="mb-1 block font-semibold text-slate-300">Your Name *</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={memberName}
+                    onChange={(e) => setMemberName(e.target.value)}
+                    placeholder="e.g. Prakash"
+                    className="w-full rounded-xl border border-white/10 bg-[#121722] py-2 pl-9 pr-3 text-white focus:border-violet-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1 block font-semibold text-slate-300">Account Email *</label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="prakash@household.com"
+                  className="w-full rounded-xl border border-white/10 bg-[#121722] py-2 pl-9 pr-3 text-white focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block font-semibold text-slate-300">Password *</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full rounded-xl border border-white/10 bg-[#121722] py-2 pl-9 pr-3 text-white focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthenticating}
+              className="w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
+            >
+              {isAuthenticating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <span>{authTab === 'signin' ? 'Sign In' : 'Create Household Account'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 }

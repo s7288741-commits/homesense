@@ -26,13 +26,6 @@ export interface NavItem {
 
 export const NAVIGATION_ITEMS: NavItem[] = [
   {
-    id: 'landing',
-    label: 'Landing Page',
-    href: '/',
-    icon: Sparkles,
-    section: 'main',
-  },
-  {
     id: 'dashboard',
     label: 'Overview',
     href: '/dashboard',

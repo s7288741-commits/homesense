@@ -25,6 +25,11 @@ export default function DashboardPage() {
 
   const [bannerAdded, setBannerAdded] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAutoPrepare = () => {
     autoPreparePlan();
@@ -40,7 +45,7 @@ export default function DashboardPage() {
       {/* Page Header */}
       <PageHeader
         title="Household Overview"
-        subtitle="Contextual replenishment intelligence — Remember → Predict → Explain → Recommend"
+        subtitle="Smart replenishment insights — track supplies, predict restocks, and order in one tap"
         icon={Sparkles}
       />
 
@@ -51,13 +56,13 @@ export default function DashboardPage() {
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-400">
-                  <AlertTriangle className="h-3 w-3" /> Urgent Replenishment Recommended
+                  <AlertTriangle className="h-3 w-3" /> Urgent Restock Alert
                 </span>
-                <span className="text-xs text-slate-400">{inventoryItems.length} items tracked</span>
+                <span className="text-xs text-slate-400">{mounted ? inventoryItems.length : 12} items tracked</span>
               </div>
-              <h2 className="text-lg font-bold text-white">Cooking Oil & Basmati Rice Depletion Risk</h2>
+              <h2 className="text-lg font-bold text-white">Cooking Oil & Basmati Rice Running Low</h2>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Cooking oil will run out in ~2 days. Household velocity increased 15%. Rain forecast tomorrow morning (quick-commerce delivery recommended).
+                Cooking oil will run out in ~2 days. Household usage increased by 15%. Rain expected tomorrow morning—ordering ahead is recommended.
               </p>
             </div>
 
@@ -69,7 +74,7 @@ export default function DashboardPage() {
               ) : (
                 <button
                   onClick={handleAutoPrepare}
-                  className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition-all cursor-pointer"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Auto-Prepare Shopping Plan
@@ -83,7 +88,7 @@ export default function DashboardPage() {
               </Link>
               <button
                 onClick={() => setBannerDismissed(true)}
-                className="p-2 text-slate-400 hover:text-white"
+                className="p-2 text-slate-400 hover:text-white cursor-pointer"
                 title="Dismiss"
               >
                 <X className="h-4 w-4" />
@@ -100,7 +105,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-bold text-white">
               <ShieldAlert className="h-5 w-5 text-red-500" />
-              Urgent Household Risks ({runningLowItems.length})
+              Running Low & Urgent Restocks ({runningLowItems.length})
             </h2>
             <Link href="/inventory" className="text-xs font-bold text-violet-400 hover:underline flex items-center gap-1">
               View All Inventory ({inventoryItems.length}) <ArrowRight className="h-3.5 w-3.5" />
@@ -133,12 +138,12 @@ export default function DashboardPage() {
                   Stock: {item.quantity} {item.unit} · Preferred brand: {item.preferredBrand || 'Standard'}
                 </p>
                 <div className="text-xs text-slate-300 bg-white/[0.03] p-3 rounded-xl border border-white/5 space-y-1">
-                  <strong className="text-amber-400 block">Explanation:</strong> Velocity is ~0.2 {item.unit}/day based on past usage patterns.
+                  <strong className="text-amber-400 block">Why it&apos;s flagged:</strong> Used at ~0.2 {item.unit}/day based on your recent family usage.
                 </div>
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => restockInventoryItem(item.id, 2, item.unit)}
-                    className="flex-1 rounded-xl bg-emerald-600/20 border border-emerald-500/30 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-1"
+                    className="flex-1 rounded-xl bg-emerald-600/20 border border-emerald-500/30 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <RefreshCw className="h-3.5 w-3.5" /> Restock Now
                   </button>
@@ -153,7 +158,7 @@ export default function DashboardPage() {
                         category: item.category,
                       })
                     }
-                    className="flex-1 rounded-xl bg-violet-600/20 border border-violet-500/30 py-1.5 text-xs font-bold text-violet-300 hover:bg-violet-600 hover:text-white transition-all flex items-center justify-center gap-1"
+                    className="flex-1 rounded-xl bg-violet-600/20 border border-violet-500/30 py-1.5 text-xs font-bold text-violet-300 hover:bg-violet-600 hover:text-white transition-all flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <ShoppingCart className="h-3.5 w-3.5" /> Add to Plan
                   </button>
@@ -162,9 +167,9 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Contextual Intelligence Recommendations */}
+          {/* Smart Recommendations & Alerts */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Contextual Intelligence</h3>
+            <h3 className="text-xs font-bold tracking-wider text-slate-400 uppercase">Smart Recommendations & Alerts</h3>
             {actionCards.map((card) => (
               <div
                 key={card.id}
