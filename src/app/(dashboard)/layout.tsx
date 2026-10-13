@@ -3,7 +3,7 @@
 import React from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
-import { HouseholdProvider, useHousehold } from "@/context/HouseholdContext";
+import { useHousehold } from "@/context/HouseholdContext";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 import { cn } from "@/lib/utils";
 
@@ -36,8 +36,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <HouseholdProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </HouseholdProvider>
+    <DashboardContent>{children}</DashboardContent>
   );
 }

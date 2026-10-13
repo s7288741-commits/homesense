@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import HomeSenseLogo from '@/components/ui/HomeSenseLogo';
+import { useHousehold } from '@/context/HouseholdContext';
+import { signInAccount, registerAccount } from '@/lib/auth';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -177,16 +179,19 @@ export default function LandingPage() {
   const [activeFeatureTab, setActiveFeatureTab] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
 
+  const { login, addMember, updateHouseholdName } = useHousehold();
+
   // Auth Modal State
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState<'signin' | 'register'>('signin');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Form Inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [householdName, setHouseholdName] = useState('Marathe Household');
-  const [memberName, setMemberName] = useState('Prakash');
+  const [householdName, setHouseholdName] = useState('');
+  const [memberName, setMemberName] = useState('');
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -198,17 +203,59 @@ export default function LandingPage() {
 
   const openAuth = (tab: 'signin' | 'register' = 'signin') => {
     setAuthTab(tab);
+    setAuthError(null);
+    setEmail('');
+    setPassword('');
+    setMemberName('');
+    setHouseholdName('');
     setShowAuthModal(true);
   };
 
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setIsAuthenticating(true);
+
     setTimeout(() => {
-      setIsAuthenticating(false);
-      setShowAuthModal(false);
-      router.push('/dashboard');
-    }, 1000);
+      if (authTab === 'signin') {
+        const result = signInAccount(email, password);
+        if (!result.ok) {
+          setAuthError(result.error);
+          setIsAuthenticating(false);
+          return;
+        }
+        // Find matching context member by email, or fall back to first member
+        login(undefined);
+        setIsAuthenticating(false);
+        setShowAuthModal(false);
+        router.push('/dashboard');
+      } else {
+        if (!memberName.trim()) {
+          setAuthError('Please enter your name.');
+          setIsAuthenticating(false);
+          return;
+        }
+        if (password.length < 6) {
+          setAuthError('Password must be at least 6 characters.');
+          setIsAuthenticating(false);
+          return;
+        }
+        const result = registerAccount(email, password, memberName, householdName);
+        if (!result.ok) {
+          setAuthError(result.error);
+          setIsAuthenticating(false);
+          return;
+        }
+        // Add to household context and update household name
+        addMember({ name: result.account.name, email: result.account.email });
+        if (householdName.trim()) {
+          updateHouseholdName(result.account.householdName);
+        }
+        setIsAuthenticating(false);
+        setShowAuthModal(false);
+        router.push('/dashboard');
+      }
+    }, 800);
   };
 
   const featureTabs = [
@@ -255,10 +302,7 @@ export default function LandingPage() {
             <a href="#preview" className="landing-nav-link">Dashboard Preview</a>
           </div>
 
-          {/* Nav Center: Centered Logo Stacked */}
-          <div className="landing-nav-center">
-            <HomeSenseLogo size="md" layout="stacked" href="/" />
-          </div>
+
 
           {/* Nav Right: Portal Actions */}
           <div className="landing-nav-right">
@@ -675,8 +719,7 @@ export default function LandingPage() {
       >
         <div className="space-y-4 text-xs">
           <div className="flex flex-col items-center justify-center py-2 text-center border-b border-white/10">
-            <HomeSenseLogo size="md" layout="stacked" href="/" />
-            <h3 className="mt-3 text-base font-extrabold text-white">
+            <h3 className="text-base font-extrabold text-white">
               {authTab === 'signin' ? 'Sign In to HomeSense' : 'Set Up Your Household'}
             </h3>
             <p className="mt-0.5 text-[11px] text-slate-400">
@@ -775,15 +818,22 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {authError && (
+              <div className="flex items-start gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-[11px] text-red-400">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{authError}</span>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
+              className="w-full rounded-xl bg-violet-600 py-3 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isAuthenticating ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin text-white" />
-                  <span>Signing In...</span>
+                  <span>{authTab === 'signin' ? 'Signing In...' : 'Creating Account...'}</span>
                 </>
               ) : (
                 <>
