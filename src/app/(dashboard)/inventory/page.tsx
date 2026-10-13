@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { AddItemModal } from '@/components/inventory/AddItemModal';
 import { RestockModal } from '@/components/inventory/RestockModal';
-import { getInventoryItems } from '@/services/inventory.service';
+import { EditItemModal } from '@/components/inventory/EditItemModal';
+import { useHousehold } from '@/context/HouseholdContext';
 import {
   InventoryItem,
   ItemStatus,
@@ -15,12 +16,19 @@ import {
 } from '@/types';
 import { cn, formatQuantity, formatRemainingDays } from '@/lib/utils';
 import {
-  Package, Search, LayoutGrid, List, Plus, X
+  Package, Search, LayoutGrid, List, Plus, X, Edit3, Trash2, RefreshCw, AlertCircle
 } from 'lucide-react';
 
 export default function InventoryPage() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    inventoryItems,
+    addInventoryItem,
+    updateInventoryItem,
+    restockInventoryItem,
+    markInventoryItemLow,
+    deleteInventoryItem,
+  } = useHousehold();
+
   const [filters, setFilters] = useState<InventoryFilters>({
     search: '',
     statuses: [],
@@ -30,28 +38,17 @@ export default function InventoryPage() {
     viewMode: 'grid',
   });
 
+  // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedRestockItem, setSelectedRestockItem] = useState<InventoryItem | null>(null);
   const [showRestockModal, setShowRestockModal] = useState(false);
 
-  useEffect(() => {
-    async function loadItems() {
-      setIsLoading(true);
-      try {
-        const data = await getInventoryItems();
-        setItems(data);
-      } catch (error) {
-        console.error('Failed to load inventory:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadItems();
-  }, []);
+  const [selectedEditItem, setSelectedEditItem] = useState<InventoryItem | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  // Filter & Sort
+  // Filter & Sort Items
   const filteredItems = useMemo(() => {
-    let result = [...items];
+    let result = [...inventoryItems];
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -84,7 +81,7 @@ export default function InventoryPage() {
     });
 
     return result;
-  }, [items, filters]);
+  }, [inventoryItems, filters]);
 
   const toggleStatus = (status: ItemStatus) => {
     setFilters((prev) => ({
@@ -96,21 +93,26 @@ export default function InventoryPage() {
   };
 
   const handleRestock = (item: InventoryItem) => {
-    setSelectedItem(item);
+    setSelectedRestockItem(item);
     setShowRestockModal(true);
   };
 
-  const handleMarkLow = (item: InventoryItem) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, status: ItemStatus.RUNNING_LOW } : i))
-    );
+  const handleEdit = (item: InventoryItem) => {
+    setSelectedEditItem(item);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = (item: InventoryItem) => {
+    if (confirm(`Are you sure you want to remove "${item.name}" from your inventory?`)) {
+      deleteInventoryItem(item.id);
+    }
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Household Inventory"
-        subtitle={`${items.length} items tracked · ${items.filter((i) => i.status === ItemStatus.RUNNING_LOW || i.status === ItemStatus.UPCOMING).length} need attention`}
+        subtitle={`${inventoryItems.length} items tracked · ${inventoryItems.filter((i) => i.status === ItemStatus.RUNNING_LOW || i.status === ItemStatus.UPCOMING).length} need attention`}
         icon={Package}
         actions={
           <button
@@ -147,7 +149,7 @@ export default function InventoryPage() {
           <div className="flex flex-wrap gap-2">
             {Object.values(ItemStatus).map((status) => {
               const config = STATUS_CONFIG[status];
-              const count = items.filter((i) => i.status === status).length;
+              const count = inventoryItems.filter((i) => i.status === status).length;
               const isActive = filters.statuses.includes(status);
               return (
                 <button
@@ -174,7 +176,7 @@ export default function InventoryPage() {
               onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value as InventoryFilters['sortBy'] }))}
               className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#12161F] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-white/70 focus:border-violet-600 focus:outline-none shadow-sm"
             >
-              <option value="urgency">Sort: Urgency</option>
+              <option value="urgency">Sort: Urgency (Days Left)</option>
               <option value="name">Sort: Name</option>
               <option value="category">Sort: Category</option>
             </select>
@@ -203,15 +205,19 @@ export default function InventoryPage() {
           {filteredItems.map((item) => {
             const statusConfig = STATUS_CONFIG[item.status];
             return (
-              <div key={item.id} className="floating-card p-5 space-y-3">
+              <div key={item.id} className="floating-card p-5 space-y-3 relative group">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</h3>
-                    <span className="text-[11px] text-slate-500 dark:text-white/40">{CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-white/40">
+                      {CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}
+                    </span>
                   </div>
-                  <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', statusConfig.bgColor, statusConfig.color)}>
-                    {statusConfig.emoji} {statusConfig.label}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', statusConfig.bgColor, statusConfig.color)}>
+                      {statusConfig.emoji} {statusConfig.label}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 border-t border-slate-100 dark:border-white/5 pt-3 text-xs">
@@ -233,21 +239,36 @@ export default function InventoryPage() {
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-1.5 pt-1">
                   <button
                     onClick={() => handleRestock(item)}
-                    className="flex-1 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
+                    className="flex-1 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 flex items-center justify-center gap-1"
                   >
-                    Restock
+                    <RefreshCw className="h-3 w-3" /> Restock
                   </button>
                   {item.status !== ItemStatus.RUNNING_LOW && (
                     <button
-                      onClick={() => handleMarkLow(item)}
-                      className="flex-1 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 py-2 text-xs font-semibold text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20"
+                      onClick={() => markInventoryItemLow(item.id)}
+                      className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2.5 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20"
+                      title="Mark as Running Low"
                     >
-                      Mark Low
+                      <AlertCircle className="h-3.5 w-3.5" />
                     </button>
                   )}
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 px-2.5 py-2 text-xs font-semibold text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/20"
+                    title="Edit Item Details"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item)}
+                    className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-2.5 py-2 text-xs font-semibold text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20"
+                    title="Delete Item"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             );
@@ -283,9 +304,11 @@ export default function InventoryPage() {
                     <td className="p-3.5 text-slate-500 dark:text-white/50">{CATEGORY_LABELS[item.category]}</td>
                     <td className="p-3.5 text-slate-900 dark:text-white font-medium">{formatQuantity(item.quantity, item.unit)}</td>
                     <td className="p-3.5 font-bold text-slate-700 dark:text-white/80">{formatRemainingDays(item.remainingDaysMin, item.remainingDaysMax)}</td>
-                    <td className="p-3.5 text-right space-x-3">
+                    <td className="p-3.5 text-right space-x-2">
                       <button onClick={() => handleRestock(item)} className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Restock</button>
-                      <button onClick={() => handleMarkLow(item)} className="text-red-600 dark:text-red-400 font-semibold hover:underline">Mark Low</button>
+                      <button onClick={() => markInventoryItemLow(item.id)} className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">Mark Low</button>
+                      <button onClick={() => handleEdit(item)} className="text-violet-600 dark:text-violet-400 font-semibold hover:underline">Edit</button>
+                      <button onClick={() => handleDelete(item)} className="text-red-600 dark:text-red-400 font-semibold hover:underline">Delete</button>
                     </td>
                   </tr>
                 );
@@ -296,8 +319,23 @@ export default function InventoryPage() {
       )}
 
       {/* Modals */}
-      <AddItemModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onAdd={(newItem) => setItems([newItem, ...items])} />
-      <RestockModal item={selectedItem} isOpen={showRestockModal} onClose={() => setShowRestockModal(false)} onRestock={(updated) => setItems(items.map((i) => i.id === updated.id ? updated : i))} />
+      <AddItemModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={(newItem) => addInventoryItem(newItem)}
+      />
+      <RestockModal
+        item={selectedRestockItem}
+        isOpen={showRestockModal}
+        onClose={() => setShowRestockModal(false)}
+        onRestock={(updated) => restockInventoryItem(updated.id, updated.quantity, updated.unit, updated.typicalPrice, updated.preferredBrand)}
+      />
+      <EditItemModal
+        item={selectedEditItem}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={(id, updates) => updateInventoryItem(id, updates)}
+      />
     </div>
   );
 }

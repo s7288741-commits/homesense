@@ -18,8 +18,8 @@ export const mockActionCards: SmartActionCard[] = [
     id: 'ac-001',
     type: ActionCardType.ANOMALY_ALERT,
     priority: 1,
-    title: 'Unusual Consumption: Detergent',
-    message: 'Detergent Powder consumed 43% faster than usual (17 days vs 30 days baseline).',
+    title: 'Detergent Used Faster Than Usual',
+    message: 'Detergent Powder was used 43% faster than usual (17 days vs 30 days normal usage).',
     actions: [
       { label: 'Explain Why', variant: 'primary', actionId: 'explain-anomaly-inv-011' },
       { label: 'Dismiss', variant: 'ghost', actionId: 'dismiss-ac-001' },
@@ -31,8 +31,8 @@ export const mockActionCards: SmartActionCard[] = [
     id: 'ac-002',
     type: ActionCardType.FORGOTTEN_ITEM,
     priority: 5,
-    title: '2 Items Missing from Your Cycle',
-    message: 'Toothpaste and Floor Cleaner were expected in your last shopping cycle but weren\'t purchased.',
+    title: '2 Items Usually Purchased Together',
+    message: 'Toothpaste and Floor Cleaner were expected in your recent shop but haven\'t been restocked yet.',
     actions: [
       { label: 'Add to Plan', variant: 'primary', actionId: 'add-forgotten-items' },
       { label: 'Not Needed', variant: 'ghost', actionId: 'dismiss-ac-002' },
@@ -44,8 +44,8 @@ export const mockActionCards: SmartActionCard[] = [
     id: 'ac-003',
     type: ActionCardType.EVENT_REMINDER,
     priority: 4,
-    title: 'Diwali Gathering in 13 Days',
-    message: '6 guests expected for 3 days. Review additional household requirements?',
+    title: 'Diwali Celebration in 13 Days',
+    message: '6 guests expected for 3 days. Would you like to review extra restock items?',
     actions: [
       { label: 'Review Suggestions', variant: 'primary', actionId: 'review-event-evt-001' },
       { label: 'Dismiss', variant: 'ghost', actionId: 'dismiss-ac-003' },
@@ -57,7 +57,7 @@ export const mockActionCards: SmartActionCard[] = [
     type: ActionCardType.CO_PURCHASE,
     priority: 6,
     title: 'Usually Bought Together',
-    message: 'Rice is in your plan. You usually also buy Dal and Oil together.',
+    message: 'Rice is in your plan. You usually buy Dal and Cooking Oil together with it.',
     actions: [
       { label: 'Add Dal', variant: 'primary', actionId: 'add-co-dal' },
       { label: 'Not This Time', variant: 'ghost', actionId: 'dismiss-ac-004' },
@@ -69,8 +69,8 @@ export const mockActionCards: SmartActionCard[] = [
     id: 'ac-005',
     type: ActionCardType.BUY_NOW_VS_WAIT,
     priority: 3,
-    title: 'Oil Can Wait',
-    message: 'Cooking Oil has 7-9 days remaining. Next shopping window is in 5 days — no rush.',
+    title: 'Cooking Oil Stock is Good',
+    message: 'Cooking Oil still has 7-9 days remaining. Your next scheduled shop is in 5 days—no rush.',
     actions: [
       { label: 'Buy Now Anyway', variant: 'secondary', actionId: 'buy-now-inv-003' },
       { label: 'Wait', variant: 'ghost', actionId: 'dismiss-ac-005' },
